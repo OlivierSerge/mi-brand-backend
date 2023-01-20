@@ -1,7 +1,8 @@
 const { json } = require("body-parser");
 const express = require("express");
 const jwt = require("jsonwebtoken");
-// const joi = require("joi");
+const Joi = require("@hapi/joi");
+const { loginValidation, signUpValidation } = require("./validations");
 const router = express.Router();
 const Users = require("../models/users");
 const bcrypt = require("bcrypt");
@@ -16,6 +17,9 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/signUp", async (req, res) => {
+  // validate before
+  const { error } = signUpValidation(req.body);
+  if (error) return res.status(400).send(error.details[0].message);
   const user = new Users({
     username: req.body.username,
     password: req.body.password,
@@ -31,7 +35,10 @@ router.post("/signUp", async (req, res) => {
 });
 // login
 router.post("/:login", async (req, res) => {
+  // validate user inputs beforehand
   const user = req.body;
+  const { error } = loginValidation(user);
+  if (error) return res.status(400).send(error.details[0].message);
   //check if user exists
   const foundUser = await Users.findOne({ username: req.body.username });
   if (!foundUser) {
@@ -51,5 +58,36 @@ router.post("/:login", async (req, res) => {
     expiresIn: "1h",
   });
   res.header("auth-token", token).json({ token });
+  res.status(200).send("user logged in succesfully");
+});
+//getting single user by id
+router.get("/:userId", async (req, res) => {
+  try {
+    const singleUser = await Article.findById(req.params.userId);
+    res.json(singleUser);
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+//deleting single user by id
+router.delete("/:userId", async (req, res) => {
+  try {
+    const toDeleteUser = await Article.remove({ _id: req.params.userId });
+    res.json(toDeleteUser);
+  } catch (err) {
+    res.json({ message: err });
+  }
+});
+//updating single user by id
+router.patch("/:userId", async (req, res) => {
+  try {
+    const updatedArticle = await Article.updateOne(
+      { _id: req.params.userId },
+      { $set: { title: req.body.title } }
+    );
+    res.json(updatedArticle);
+  } catch (err) {
+    res.json({ message: err });
+  }
 });
 module.exports = router;

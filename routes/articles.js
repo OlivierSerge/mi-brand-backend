@@ -1,6 +1,7 @@
 const { json } = require("body-parser");
 const express = require("express");
 const router = express.Router();
+const { articleValidation} = require("./validations");
 const Article = require("../models/articles");
 
 router.get("/", async (req, res) => {
@@ -14,10 +15,14 @@ router.get("/", async (req, res) => {
 });
 //submit new article post
 router.post("/", async (req, res) => {
+  // validate  newArticle inputs beforehand
+  const { error } = articleValidation(req.body);
+  if (error) return res.status(400).send(error.details[0].message);
+  // add the newArticle
   const newArticlePost = new Article({
     title: req.body.title,
     author: req.body.author,
-    File: req.body.File,
+    image: req.body.image,
     content_type: req.body.content_type,
     details: req.body.details,
   });

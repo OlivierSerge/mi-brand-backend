@@ -3,7 +3,7 @@ const express = require("express");
 
 const router = express.Router();
 const Messages = require("../models/messages");
-
+const { contactUsValidation } = require("./validations");
 
 router.get("/", async (req, res) => {
   try {
@@ -16,7 +16,10 @@ router.get("/", async (req, res) => {
 });
 //submit new messaget
 router.post("/", async (req, res) => {
-  
+  // validate the user inputa before adding them into the database
+  const { error } = contactUsValidation(req.body);
+  if (error) return res.status(400).send(error.details[0].message);
+  // adding new message
   const newMessagePost = new Messages({
     name: req.body.name,
     email: req.body.email,
@@ -32,16 +35,16 @@ router.post("/", async (req, res) => {
   }
 });
 //getting single client inquiry by id
-router.get("/:messageId", async (req, res) => {
+router.get("/:messagesId", async (req, res) => {
   try {
-    const oneClientMessage = await Messages.findById(req.params.messageId);
+    const oneClientMessage = await Messages.findById(req.params.messagesId);
     res.json(oneClientMessage);
   } catch (err) {
     res.json({ message: err });
   }
 });
 //deleting single article by id
-router.delete("/:postId", async (req, res) => {
+router.delete("/:messagesId", async (req, res) => {
   try {
     const toDeleteOneClientMsg = await Messages.remove({
       _id: req.params.messagesId,
@@ -52,7 +55,7 @@ router.delete("/:postId", async (req, res) => {
   }
 });
 //updating single article by id
-router.patch("/:postId", async (req, res) => {
+router.patch("/:messagesId", async (req, res) => {
   try {
     const updatedMessage = await Messages.updateOne(
       { _id: req.params.messagesId },

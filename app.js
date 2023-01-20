@@ -12,6 +12,11 @@ const cors = require("cors");
 const articlesRoutes = require("./routes/articles");
 const messagesRoutes = require("./routes/messages");
 const usersRoute = require("./routes/users");
+// const {
+//   articleValidation,
+//   userValidation,
+//   contactUsValidation,
+// } = require("./routes/validations");
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());

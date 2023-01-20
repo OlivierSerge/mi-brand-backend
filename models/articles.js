@@ -8,7 +8,7 @@ const articleSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  File: {
+  image: {
     type: String,
     required: true,
   },
