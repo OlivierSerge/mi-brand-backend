@@ -7,6 +7,7 @@ const router = express.Router();
 const Users = require("../models/users");
 const bcrypt = require("bcrypt");
 const authorize = require("../routes/verify");
+const { findOne } = require("../models/users");
 
 router.get("/", async (req, res) => {
   try {
@@ -23,7 +24,7 @@ router.post("/signUp", async (req, res) => {
   if (error) return res.status(400).send(error.details[0].message);
   // check if info already exusts in DB
   const isUserNew = await Users.findOne({ username: req.body.username });
-  if (!isUserNew)
+  if (isUserNew)
     return res.status(400).send("username already exists try changing it");
 
   // add new user if hshe's valid
@@ -31,17 +32,17 @@ router.post("/signUp", async (req, res) => {
     username: req.body.username,
     password: req.body.password,
   });
-  if (!user.username || !user.password) {
-    return res.status(400).send("Username and password are required.");
-  }
+  // if (!user.username || !user.password) {
+  //   return res.status(400).send("Username and password are required.");
+  // }
   const hash = await bcrypt.hash(user.password, 10);
   user.password = hash;
 
   const dbstored = await user.save();
-  res.status(200).json(user);
+  res.status(200).json(dbstored);
 });
 // login
-router.post("/:login", authorize, async (req, res) => {
+router.post("/login", async (req, res) => {
   // validate user inputs beforehand
   const user = req.body;
   const { error } = loginValidation(user);
@@ -49,8 +50,7 @@ router.post("/:login", authorize, async (req, res) => {
   //check if user exists
   const foundUser = await Users.findOne({ username: req.body.username });
   if (!foundUser) {
-    const err = new Error("Invalid username or password");
-    return res.status(400).json({ message: err });
+    return res.status(400).json({ message: "Invalid username or password" });
   }
   //check if password is correct
   const isPasswordValid = await bcrypt.compare(
@@ -62,13 +62,14 @@ router.post("/:login", authorize, async (req, res) => {
     return res.status(400).send("Invalid username or password");
   }
   //create token
-  const token = jwt.sign({ user }, process.env.TOKEN_SECRET, {
+  const token = jwt.sign({ user: foundUser }, process.env.TOKEN_SECRET, {
     // expiresIn: "1h",
   });
-  res.header("auth-token", token).json({ token });
-  // res
-  // .status(200)
-  // .send("welcome," + user.username + ",your Login request is successful");
+  res.header("auth-token", token);
+  res.status(200).json({
+    message: "welcome," + user.username + ",your Login request is successful",
+    token,
+  });
 });
 //getting single user by id
 router.get("/:userId", async (req, res) => {
@@ -81,14 +82,14 @@ router.get("/:userId", async (req, res) => {
   }
 });
 //deleting single user by id
-router.delete("/:userId", async (req, res) => {
+router.delete("/:userId", authorize, async (req, res) => {
   try {
-    const aUser = await Users.findOne({ _id: req.params.postId });
+    const aUser = await Users.findOne({ _id: req.params.userId });
     if (!aUser) {
-      return next();
+      res.status(400).json({ message: "the user doesn't exist verify" });
     }
     const toDeleteUser = await Users.remove({ _id: req.params.userId });
-    res.status(200).json(toDeleteUser);
+    res.status(200).json({ message: " user deleted" });
   } catch (err) {
     res.status(400).json({ message: err });
   }
@@ -96,12 +97,18 @@ router.delete("/:userId", async (req, res) => {
 //updating single user by id
 router.patch("/:userId", authorize, async (req, res) => {
   try {
-    const updatedArticle = await Users.updateOne(
+    const foundUser = await Users.findOne({ _id: req.params.userId });
+    if (!foundUser) {
+      return res.status(400).json({ message: "user doesn't exists" });
+    }
+    await Users.updateOne(
       { _id: req.params.userId },
-      { $set: { title: req.body.title } }
+      { $set: { username: req.body.username } }
     );
-    res.status(200).json(updatedArticle);
+    const updatedUser = await Users.findOne({ _id: req.params.userId });
+    res.status(200).json(updatedUser);
   } catch (err) {
+    console.log(err);
     res.status(400).json({ message: err });
   }
 });

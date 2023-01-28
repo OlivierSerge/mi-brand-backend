@@ -11,6 +11,7 @@ const usersSchema = mongoose.Schema({
   },
   adress: {
     type: String,
+    required: true,
   },
 });
 module.exports = mongoose.model("users", usersSchema);

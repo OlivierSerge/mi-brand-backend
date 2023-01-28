@@ -27,16 +27,17 @@ router.post("/", async (req, res) => {
     const error = new Error("this  exists");
     return next(error);
   }
-  // adding new message
-  const newMessagePost = new Messages({
-    name: req.body.name,
-    email: req.body.email,
-    adress: req.body.adress,
-    message: req.body.message,
-  });
-  const savedMessages = await newMessagePost.save();
   try {
-    res.status(200).json(savedMessages);
+    // adding new message
+    const newMessagePost = new Messages({
+      name: req.body.name,
+      email: req.body.email,
+      adress: req.body.adress,
+      message: req.body.message,
+    });
+    const savedMessages = await newMessagePost.save();
+
+    res.status(200).json({ message: "submit went succesfully", savedMessages });
   } catch (err) {
     res.status(400).json({ message: err });
     console.log(err);
@@ -46,7 +47,7 @@ router.post("/", async (req, res) => {
 router.get("/:messagesId", async (req, res) => {
   try {
     const oneClientMessage = await Messages.findById(req.params.messagesId);
-    res.status(200).json(oneClientMessage);
+    res.status(200).json({ message: "success", oneClientMessage });
   } catch (err) {
     res.status(400).json({ message: err });
   }
@@ -54,14 +55,16 @@ router.get("/:messagesId", async (req, res) => {
 //deleting single article by id
 router.delete("/:messagesId", async (req, res) => {
   try {
-     const myMessage = await Messages.findOne({ _id: req.params.postId });
-     if (!myMessage) {
-       return next();
-     }
+    const myMessage = await Messages.findOne({ _id: req.params.postId });
+    if (!myMessage) {
+      return next();
+    }
     const toDeleteOneClientMsg = await Messages.remove({
       _id: req.params.messagesId,
     });
-    res.status(200).json(toDeleteOneClientMsg);
+    res
+      .status(200)
+      .json({ message: "deletion went succesfullly", toDeleteOneClientMsg });
   } catch (err) {
     res.status(400).json({ message: err });
   }
@@ -80,7 +83,8 @@ router.patch("/:messagesId", async (req, res) => {
         },
       }
     );
-    res.status(200).json(updatedMessage);
+    const upToDate = await Messages.findOne({ _id: req.params.messagesId });
+    res.status(200).json({ message: "message updated", upToDate });
   } catch (err) {
     res.status(400).json({ message: err });
   }

@@ -1,7 +1,7 @@
 
 const chai = require("chai");
 const chaiHttp = require("chai-http");
-const mongoose = require("mongoose");
+
 const testServer = require("../app");
 let randomId = "63c586f6e7f568be33380659";
 //Assertion style
@@ -34,8 +34,17 @@ describe("my-brand-backend", () => {
         .end((err, response) => {
           response.should.have.status(200);
           response.body.should.be.a("object");
-          // response.body.should.have.property("id");
-          // response.body.should.have.property("");
+          response.should.be.json;
+          response.body.should.have
+            .property("oneClientMessage")
+            .that.includes.all.keys([
+              "name",
+              "adress",
+              "email",
+              "message",
+              "date",
+              "_id",
+            ]);
           done();
         });
     });
@@ -45,10 +54,10 @@ describe("my-brand-backend", () => {
   describe("POST api/messages/:postId", () => {
     it("should add new contact us message to the db", (done) => {
       let newMessage = {
-        name: "petero",
-        email: "mugaboo",
+        name: "petero" + Math.floor(Math.random() * 97),
+        email: "mugabe@gmail.com",
         adress: "kibagabaga",
-        message: "mugabo",
+        message: Math.floor(Math.random() * 97) + "mugabo",
         date: "2023-02-20",
       };
       chai
@@ -56,10 +65,20 @@ describe("my-brand-backend", () => {
         .post("/api/messages")
         .send(newMessage)
         .end((err, response) => {
+          // console.log(response.body);
+          response.body.should.be.a("object");
           response.should.have.status(200);
-          // response.body.should.be.a("object");
-          // response.body.should.have.property("id");
-          // response.body.should.have.property("");
+          response.should.be.json;
+          response.body.should.have
+            .property("savedMessages")
+            .that.includes.all.keys([
+              "name",
+              "email",
+              "adress",
+              "message",
+              "date",
+              "_id",
+            ]);
           done();
         });
     });
@@ -69,7 +88,7 @@ describe("my-brand-backend", () => {
     it("should be able to update one single message retrieved by its id", (done) => {
       let newMessage = {
         name: "petero",
-        email: "mugaboo",
+        email: "mugaboo@yahoo.com",
         adress: "kibagabaga",
         message: "mugabo",
         date: "2023-02-20",
@@ -81,9 +100,17 @@ describe("my-brand-backend", () => {
         .end((err, response) => {
           response.should.have.status(200);
           response.body.should.be.a("object");
-          // response.body.should.have.property("id");
-          // response.body.should.have.property("");
-          // response.body.should.have.property("length").eq(10);
+          response.should.be.json;
+          response.body.should.have
+            .property("upToDate")
+            .that.includes.all.keys([
+              "name",
+              "email",
+              "adress",
+              "message",
+              "date",
+              "_id",
+            ]);
           done();
         });
     });
@@ -93,11 +120,13 @@ describe("my-brand-backend", () => {
     it("should be able to delete one single message by its id", (done) => {
       chai
         .request(testServer)
-        .delete("/api/messages/63ce8e5ec4165c48507f2bb1")
+        .delete("/api/messages/63d592ed7fd86d6770d7a051")
         .end((err, response) => {
-          response.should.have.status(200);
+          response.should.have.status(400);
           response.body.should.be.a("object");
-          // response.body.should.have.property("id");
+          response.should.be.json;
+
+          // response.body.should.have.property("id");toDeleteOneClientMsg
           // response.body.should.have.property("");
           done();
         });

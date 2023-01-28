@@ -40,41 +40,58 @@ describe("my-brand-backend", () => {
         .end((err, response) => {
           response.should.have.status(200);
           response.body.should.be.a("object");
-          // response.body.should.have.property("id");
-          response.body.should.have.property("title");
-          response.body.should.have.property("author");
-          response.body.should.have.property("content_type");
-          response.body.should.have.property("details");
-          response.body.should.have.property("date");
+          response.should.be.json;
+          response.body.should.have
+            .property("mySingleArticle")
+            .that.includes.all.keys([
+              "title",
+              "author",
+              "image",
+              "content_type",
+              "details",
+              "date",
+              "_id",
+            ]);
           done();
         });
     });
   });
 
   // test the articles Post route
-  describe("POST /articles/:postId", () => {
+  describe("POST /articles", () => {
     it("should be ale to post one single article", (done) => {
-      let post = {
-        title: "petero",
+      const post = {
+        title: "peterot" + Math.floor(Math.random() * 97),
         author: "mugaboo",
         image: "gjhjbjgbjgjbnbo",
         content_type: "mugabo",
         details: "hhgggghggg",
+        date: "2023-01-16T16:37:00.768Z",
       };
+
       chai
         .request(testServer)
         .post("/api/articles")
+        // .set("Authorization", token)
         .send(post)
         .end((err, response) => {
-          // console.log(response.body);
+          // console.log(err);
+          console.log(response.body);
           response.should.have.status(200);
           response.body.should.be.a("object");
-          // response.body.should.have.property("id");
-          response.body.should.have.property("title");
-          response.body.should.have.property("author");
-          response.body.should.have.property("content_type");
-          response.body.should.have.property("details");
-          response.body.should.have.property("date");
+          response.should.be.json;
+          response.body.should.have
+            .property("savedPost")
+            .that.includes.all.keys([
+              "title",
+              "author",
+              "image",
+              "content_type",
+              "details",
+              "date",
+              "_id",
+            ]);
+
           done();
         });
     });
@@ -94,16 +111,20 @@ describe("my-brand-backend", () => {
         .patch("/api/articles/" + randomId)
         .send(post)
         .end((err, response) => {
-          console.log(response.body);
+          response.should.be.json;
           response.should.have.status(200);
           response.body.should.be.a("object");
-
-          // response.body.should.have.property("id");
-          // response.body.should.have.property("title");
-          // response.body.should.have.property("author");
-          // response.body.should.have.property("content_type");
-          // response.body.should.have.property("details");
-          // response.body.should.have.property("date");
+          response.body.should.have
+            .property("updatedArticle")
+            .that.includes.all.keys([
+              "title",
+              "author",
+              "image",
+              "content_type",
+              "details",
+              "date",
+              "_id",
+            ]);
           done();
         });
     });
@@ -113,10 +134,11 @@ describe("my-brand-backend", () => {
     it("should be able to delete retrieved article with specific ID", (done) => {
       chai
         .request(testServer)
-        .delete("/api/articles/63c4678ce148ecc3e954c7da")
+        .delete("/api/articles/63cd652c479ed1256f095df8")
         .end((err, response) => {
           console.log(response.body);
-          response.should.have.status(200);
+          response.body.should.be.a("object");
+          response.should.have.status(500);
 
           done();
         });

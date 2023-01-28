@@ -1,7 +1,6 @@
 const jwt = require("jsonwebtoken");
 module.exports = function (req, res, next) {
-  const userToken = res.header("auth-token");
-
+  const userToken = req.headers.authorization.split(" ")[1];
   if (!userToken)
     return res.status(400).json("not authorised to perform such tasks");
   try {
@@ -10,21 +9,17 @@ module.exports = function (req, res, next) {
       process.env.TOKEN_SECRET,
       (error, authData) => {
         if (error) {
-          res.sendStatus(400);
+          res
+            .sendStatus(400)
+            .json({ message: "not authorised to perform such tasks" });
         } else {
-          res.json({
-            message: "request authorized...",
+          req.user = authData.user;
 
-            authData,
-          });
+          next();
         }
       }
     );
-    req.user = authorized.id;
-    console.log(req.user);
-
-    next();
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(400).json({ message: error });
   }
 };
