@@ -7,18 +7,26 @@ const { contactUsValidation } = require("./validations");
 
 router.get("/", async (req, res) => {
   try {
-    // getting our article posts from Mongo
+    // getting our message posts from Mongo
     const mongoDbMessages = await Messages.find();
-    res.json(mongoDbMessages);
+    res.status(200).json(mongoDbMessages);
   } catch (err) {
-    res.json({ message: err });
+    res.status(400).json({ message: err });
   }
 });
 //submit new messaget
 router.post("/", async (req, res) => {
-  // validate the user inputa before adding them into the database
+  // validate the user inputs before adding them into the database
   const { error } = contactUsValidation(req.body);
   if (error) return res.status(400).send(error.details[0].message);
+  // find if the user doesn't exist first
+  const findInDb = await Messages.findOne({ message: req.body.message });
+  // check if user exixts
+  if (findInDb) {
+    res.status(400);
+    const error = new Error("this  exists");
+    return next(error);
+  }
   // adding new message
   const newMessagePost = new Messages({
     name: req.body.name,
@@ -28,9 +36,9 @@ router.post("/", async (req, res) => {
   });
   const savedMessages = await newMessagePost.save();
   try {
-    res.json(savedMessages);
+    res.status(200).json(savedMessages);
   } catch (err) {
-    res.json({ message: err });
+    res.status(400).json({ message: err });
     console.log(err);
   }
 });
@@ -38,20 +46,24 @@ router.post("/", async (req, res) => {
 router.get("/:messagesId", async (req, res) => {
   try {
     const oneClientMessage = await Messages.findById(req.params.messagesId);
-    res.json(oneClientMessage);
+    res.status(200).json(oneClientMessage);
   } catch (err) {
-    res.json({ message: err });
+    res.status(400).json({ message: err });
   }
 });
 //deleting single article by id
 router.delete("/:messagesId", async (req, res) => {
   try {
+     const myMessage = await Messages.findOne({ _id: req.params.postId });
+     if (!myMessage) {
+       return next();
+     }
     const toDeleteOneClientMsg = await Messages.remove({
       _id: req.params.messagesId,
     });
-    res.json(toDeleteOneClientMsg);
+    res.status(200).json(toDeleteOneClientMsg);
   } catch (err) {
-    res.json({ message: err });
+    res.status(400).json({ message: err });
   }
 });
 //updating single article by id
@@ -68,9 +80,9 @@ router.patch("/:messagesId", async (req, res) => {
         },
       }
     );
-    res.json(updatedMessage);
+    res.status(200).json(updatedMessage);
   } catch (err) {
-    res.json({ message: err });
+    res.status(400).json({ message: err });
   }
 });
 module.exports = router;
