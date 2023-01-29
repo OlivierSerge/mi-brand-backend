@@ -12,14 +12,19 @@ const cors = require("cors");
 const articlesRoutes = require("./routes/articles");
 const messagesRoutes = require("./routes/messages");
 const usersRoute = require("./routes/users");
+// const {
+//   articleValidation,
+//   userValidation,
+//   contactUsValidation,
+// } = require("./routes/validations");
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
-app.use("/articles", articlesRoutes);
-app.use("/messages", messagesRoutes);
-app.use("/users", usersRoute);
+app.use("/api/articles", articlesRoutes);
+app.use("/api/messages", messagesRoutes);
+app.use("/api/users", usersRoute);
 
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {
   res.send("we are on homePage");
   console.log("hello");
 });
@@ -29,3 +34,6 @@ mongoose.connect(process.env.DB_CONNECTION, { useNewUrlParser: true }, () =>
 );
 const port = process.env.PORT || 5000;
 app.listen(port, () => console.log(`started executing on port ${port}`));
+
+
+module.exports=app

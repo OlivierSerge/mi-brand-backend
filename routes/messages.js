@@ -3,58 +3,76 @@ const express = require("express");
 
 const router = express.Router();
 const Messages = require("../models/messages");
-
+const { contactUsValidation } = require("./validations");
 
 router.get("/", async (req, res) => {
   try {
-    // getting our article posts from Mongo
+    // getting our message posts from Mongo
     const mongoDbMessages = await Messages.find();
-    res.json(mongoDbMessages);
+    res.status(200).json(mongoDbMessages);
   } catch (err) {
-    res.json({ message: err });
+    res.status(400).json({ message: err });
   }
 });
 //submit new messaget
 router.post("/", async (req, res) => {
-  
-  const newMessagePost = new Messages({
-    name: req.body.name,
-    email: req.body.email,
-    adress: req.body.adress,
-    message: req.body.message,
-  });
-  const savedMessages = await newMessagePost.save();
+  // validate the user inputs before adding them into the database
+  const { error } = contactUsValidation(req.body);
+  if (error) return res.status(400).send(error.details[0].message);
+  // find if the user doesn't exist first
+  const findInDb = await Messages.findOne({ message: req.body.message });
+  // check if user exixts
+  if (findInDb) {
+    res.status(400);
+    const error = new Error("this  exists");
+    return next(error);
+  }
   try {
-    res.json(savedMessages);
+    // adding new message
+    const newMessagePost = new Messages({
+      name: req.body.name,
+      email: req.body.email,
+      adress: req.body.adress,
+      message: req.body.message,
+    });
+    const savedMessages = await newMessagePost.save();
+
+    res.status(200).json({ message: "submit went succesfully", savedMessages });
   } catch (err) {
-    res.json({ message: err });
+    res.status(400).json({ message: err });
     console.log(err);
   }
 });
 //getting single client inquiry by id
-router.get("/:messageId", async (req, res) => {
+router.get("/:messagesId", async (req, res) => {
   try {
-    const oneClientMessage = await Messages.findById(req.params.messageId);
-    res.json(oneClientMessage);
+    const oneClientMessage = await Messages.findById(req.params.messagesId);
+    res.status(200).json({ message: "success", oneClientMessage });
   } catch (err) {
-    res.json({ message: err });
+    res.status(400).json({ message: err });
   }
 });
 //deleting single article by id
-router.delete("/:postId", async (req, res) => {
+router.delete("/:messagesId", async (req, res) => {
   try {
-    const toDeleteOneClientMsg = await Messages.remove({
+    const myMessage = await Messages.findOne({ _id: req.params.messagesId });
+    if (!myMessage) {
+      return res
+        .status(400)
+        .json({ message: "The message does not exist , verify your inputs" });
+    }
+    await Messages.remove({
       _id: req.params.messagesId,
     });
-    res.json(toDeleteOneClientMsg);
+    res.status(200).json({ message: "deletion went succesfullly" });
   } catch (err) {
-    res.json({ message: err });
+    res.status(400).json({ message: err });
   }
 });
 //updating single article by id
-router.patch("/:postId", async (req, res) => {
+router.patch("/:messagesId", async (req, res) => {
   try {
-    const updatedMessage = await Messages.updateOne(
+    await Messages.updateOne(
       { _id: req.params.messagesId },
       {
         $set: {
@@ -65,9 +83,10 @@ router.patch("/:postId", async (req, res) => {
         },
       }
     );
-    res.json(updatedMessage);
+    const upToDate = await Messages.findOne({ _id: req.params.messagesId });
+    res.status(200).json({ message: "message updated", upToDate });
   } catch (err) {
-    res.json({ message: err });
+    res.status(400).json({ message: err });
   }
 });
 module.exports = router;

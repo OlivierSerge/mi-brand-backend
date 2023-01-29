@@ -3,8 +3,7 @@ const Joi = require("joi");
 const messageSchema = mongoose.Schema({
   name: {
     type: String,
-    min: 3,
-    max: 10,
+
     required: true,
   },
   email: {
@@ -14,7 +13,7 @@ const messageSchema = mongoose.Schema({
   adress: {
     type: String,
     min: 3,
-    max: 10,
+    max: 20,
     required: true,
   },
   message: {
