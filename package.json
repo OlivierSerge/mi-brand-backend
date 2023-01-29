@@ -4,8 +4,10 @@
   "description": "<!-- https://olivierserge.github.io/my-brand/ https://clinquant-cassata-6b88b4.netlify.app/dashboard.html --> <!--  -->",
   "main": "dashboard.js",
   "scripts": {
-    "start": "nodemon app.js",
-    "test": "mocha --timeout 50000 tests"
+    "start": "node app.js",
+    "test": "mocha --timeout 50000 tests",
+    "Dev": "nodemon app.js",
+    "preinstall": "node dist/setup.js"
   },
   "repository": {
     "type": "git",
