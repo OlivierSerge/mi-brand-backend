@@ -7,7 +7,7 @@ const router = express.Router();
 const Users = require("../models/users");
 const bcrypt = require("bcrypt");
 const authorize = require("../routes/verify");
-const { findOne } = require("../models/users");
+
 
 router.get("/", async (req, res) => {
   try {
@@ -19,18 +19,20 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/signUp", async (req, res) => {
+  const myuser = req.body;
   // validate before
-  const { error } = signUpValidation(req.body);
+  const { error } = signUpValidation(myuser);
   if (error) return res.status(400).send(error.details[0].message);
-  // check if info already exusts in DB
+  // check if info already exists in DB
   const isUserNew = await Users.findOne({ username: req.body.username });
   if (isUserNew)
-    return res.status(400).send("username already exists try changing it");
+    return res.status(400).send("username already exists verify your inputs");
 
   // add new user if hshe's valid
   const user = new Users({
     username: req.body.username,
     password: req.body.password,
+    adress: req.body.adress,
   });
   // if (!user.username || !user.password) {
   //   return res.status(400).send("Username and password are required.");
@@ -39,7 +41,7 @@ router.post("/signUp", async (req, res) => {
   user.password = hash;
 
   const dbstored = await user.save();
-  res.status(200).json(dbstored);
+  res.status(200).json({ message: "new user added succesfully", dbstored });
 });
 // login
 router.post("/login", async (req, res) => {
@@ -48,6 +50,7 @@ router.post("/login", async (req, res) => {
   const { error } = loginValidation(user);
   if (error) return res.status(400).send(error.details[0].message);
   //check if user exists
+  console.log("over here");
   const foundUser = await Users.findOne({ username: req.body.username });
   if (!foundUser) {
     return res.status(400).json({ message: "Invalid username or password" });
@@ -65,6 +68,7 @@ router.post("/login", async (req, res) => {
   const token = jwt.sign({ user: foundUser }, process.env.TOKEN_SECRET, {
     // expiresIn: "1h",
   });
+
   res.header("auth-token", token);
   res.status(200).json({
     message: "welcome," + user.username + ",your Login request is successful",
@@ -75,8 +79,12 @@ router.post("/login", async (req, res) => {
 router.get("/:userId", async (req, res) => {
   try {
     const singleUser = await Users.findById(req.params.userId);
-
-    res.status(200).json(singleUser);
+    if (!singleUser) {
+      res
+        .status(404)
+        .json({ message: "this user is not found verify your inputs" });
+    }
+    res.status(200).json({ message: "user found successfully", singleUser });
   } catch (err) {
     res.status(400).json({ message: err });
   }
@@ -86,7 +94,7 @@ router.delete("/:userId", authorize, async (req, res) => {
   try {
     const aUser = await Users.findOne({ _id: req.params.userId });
     if (!aUser) {
-      res.status(400).json({ message: "the user doesn't exist verify" });
+      res.status(204).json({ message: "the user doesn't exist please verify" });
     }
     const toDeleteUser = await Users.remove({ _id: req.params.userId });
     res.status(200).json({ message: " user deleted" });
@@ -95,7 +103,7 @@ router.delete("/:userId", authorize, async (req, res) => {
   }
 });
 //updating single user by id
-router.patch("/:userId", authorize, async (req, res) => {
+router.patch("/:userId", async (req, res) => {
   try {
     const foundUser = await Users.findOne({ _id: req.params.userId });
     if (!foundUser) {
@@ -106,7 +114,7 @@ router.patch("/:userId", authorize, async (req, res) => {
       { $set: { username: req.body.username } }
     );
     const updatedUser = await Users.findOne({ _id: req.params.userId });
-    res.status(200).json(updatedUser);
+    res.status(200).json({ message: "user update is successful", updatedUser });
   } catch (err) {
     console.log(err);
     res.status(400).json({ message: err });

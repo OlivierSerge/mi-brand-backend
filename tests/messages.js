@@ -3,7 +3,7 @@ const chai = require("chai");
 const chaiHttp = require("chai-http");
 
 const testServer = require("../app");
-let randomId = "63c586f6e7f568be33380659";
+let randomId = "63ce7edfc4165c48507f2baf";
 //Assertion style
 chai.should();
 chai.use(chaiHttp);
@@ -125,9 +125,6 @@ describe("my-brand-backend", () => {
           response.should.have.status(400);
           response.body.should.be.a("object");
           response.should.be.json;
-
-          // response.body.should.have.property("id");toDeleteOneClientMsg
-          // response.body.should.have.property("");
           done();
         });
     });

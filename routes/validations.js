@@ -28,10 +28,9 @@ const articleValidation = (data) => {
 //  validate user signUp
 const signUpValidation = (data) => {
   const schema = Joi.object({
-    // name: Joi.string().min(3).max().required(),
-    username: Joi.string().min(5).required(),
-    adress: Joi.string().min(3).max(8).required(),
-    password: Joi.string().min(3).max(10).required(),
+    username: Joi.string().min(5).max(20).required(),
+    adress: Joi.string().min(3).max(20).required(),
+    password: Joi.string().min(3).max(20).required(),
   });
   return schema.validate(data);
 };

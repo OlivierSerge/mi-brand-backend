@@ -55,16 +55,16 @@ router.get("/:messagesId", async (req, res) => {
 //deleting single article by id
 router.delete("/:messagesId", async (req, res) => {
   try {
-    const myMessage = await Messages.findOne({ _id: req.params.postId });
+    const myMessage = await Messages.findOne({ _id: req.params.messagesId });
     if (!myMessage) {
-      return next();
+      return res
+        .status(400)
+        .json({ message: "The message does not exist , verify your inputs" });
     }
-    const toDeleteOneClientMsg = await Messages.remove({
+    await Messages.remove({
       _id: req.params.messagesId,
     });
-    res
-      .status(200)
-      .json({ message: "deletion went succesfullly", toDeleteOneClientMsg });
+    res.status(200).json({ message: "deletion went succesfullly" });
   } catch (err) {
     res.status(400).json({ message: err });
   }
@@ -72,7 +72,7 @@ router.delete("/:messagesId", async (req, res) => {
 //updating single article by id
 router.patch("/:messagesId", async (req, res) => {
   try {
-    const updatedMessage = await Messages.updateOne(
+    await Messages.updateOne(
       { _id: req.params.messagesId },
       {
         $set: {

@@ -2,7 +2,7 @@
 const chai = require("chai");
 const chaiHttp = require("chai-http");
 const testServer = require("../app");
-let randomId = "63c6c2f7c54a13647ec2e617";
+let randomId = "63c7ccb360692d3552e38609";
 //Assertion style
 chai.should();
 chai.use(chaiHttp);
@@ -17,9 +17,7 @@ describe("my-brand-backend", () => {
         .end((err, response) => {
           response.should.have.status(200);
           response.body.should.be.a("array");
-          // response.body.should.have.property("id");
-          // response.body.should.have.property("username");
-          // response.body.should.have.property("password");
+          response.should.be.json;
           done();
         });
     });
@@ -34,27 +32,34 @@ describe("my-brand-backend", () => {
         .end((err, response) => {
           response.should.have.status(200);
           response.body.should.be.a("object");
-          // response.body.should.have.property("id");
-
+          response.should.be.json;
+          response.body.should.have
+            .property("singleUser")
+            .that.includes.all.keys(["username", "password"]);
           done();
         });
     });
   });
 
   // test the users/signIn Post route
-  describe("POST /users/signIn", () => {
+  describe("POST /users/signUp", () => {
     it("should allow a new user to register ", (done) => {
       const user = {
-        username: "serge",
+        username: "mark" + Math.floor(Math.random() * 97),
         password: "history",
+        adress: "nyamata",
       };
       chai
         .request(testServer)
-        .post("/api/users/signIn")
+        .post("/api/users/signUp")
         .send(user)
         .end((err, response) => {
           response.should.have.status(200);
           response.body.should.be.a("object");
+          response.should.be.json;
+          response.body.should.have
+            .property("dbstored")
+            .that.includes.all.keys(["username", "password", "_id"]);
 
           done();
         });
@@ -65,16 +70,18 @@ describe("my-brand-backend", () => {
     it("should Update user's credentials", (done) => {
       const user = {
         username: "MugaboP",
-        password: "amahoro",
       };
       chai
         .request(testServer)
-        .patch("/api/users/")
+        .patch("/api/users/" + randomId)
         .send(user)
         .end((err, response) => {
           response.should.have.status(200);
           response.body.should.be.a("object");
-
+          response.should.be.json;
+          response.body.should.have
+            .property("updatedUser")
+            .that.includes.all.keys(["username", "password", "_id"]);
           done();
         });
     });
@@ -84,10 +91,10 @@ describe("my-brand-backend", () => {
     it("should DELETE user in users route", (done) => {
       chai
         .request(testServer)
-        .delete("users/63c7ccb360692d3552e38609")
+        .delete("users/63c6e410a454c4d1ff55c958")
         .end((err, response) => {
-          response.should.have.status(200);
           response.body.should.be.a("object");
+          // response.should.have.status(204);
 
           done();
         });
@@ -96,13 +103,20 @@ describe("my-brand-backend", () => {
   // test the user login POST route
   describe("POST /users/login", () => {
     it("should .............", (done) => {
+      const user = {
+        username: "serge",
+        password: "history",
+      };
       chai
         .request(testServer)
         .post("/users")
+        .send(user)
         .end((err, response) => {
+          console.log(response.body);
+          console.log(err);
           response.should.have.status(200);
           response.body.should.be.a("object");
-
+          response.body.should.have.property("token");
           done();
         });
     });

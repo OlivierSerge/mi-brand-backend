@@ -15,16 +15,8 @@ describe("my-brand-backend", () => {
         .request(testServer)
         .get("/api/articles/")
         .end((err, response) => {
-          // console.log(response.body);
           response.should.have.status(200);
           response.body.should.be.a("array");
-
-          // response.body.should.have.property("_id");
-          // response.body.data.should.have.property("title");
-          // response.body.should.have.property("author");
-          // response.body.should.have.property("content_type");
-          // response.body.should.have.property("details");
-          // response.body.should.have.property("date");
           response.body.length.should.be.eql(response.body.length);
           done();
         });
@@ -65,7 +57,7 @@ describe("my-brand-backend", () => {
         author: "mugaboo",
         image: "gjhjbjgbjgjbnbo",
         content_type: "mugabo",
-        details: "hhgggghggg",
+        details: "hhgggghggg" + Math.floor(Math.random() * 97),
         date: "2023-01-16T16:37:00.768Z",
       };
 
@@ -75,8 +67,6 @@ describe("my-brand-backend", () => {
         // .set("Authorization", token)
         .send(post)
         .end((err, response) => {
-          // console.log(err);
-          console.log(response.body);
           response.should.have.status(200);
           response.body.should.be.a("object");
           response.should.be.json;
